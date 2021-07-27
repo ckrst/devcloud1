@@ -1,0 +1,47 @@
+# -- mode: ruby --
+# vi: set ft=ruby :
+
+ENV['VAGRANT_DEFAULT_PROVIDER'] = 'docker'
+OPENSTACK_RELEASE = "wallaby"
+VAGRANTFILE_API_VERSION = "2"
+
+DB_PASSWORD = "changeme"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.vm.define "db" do |db|
+    db.vm.provider "docker" do |docker|
+      docker.name = "openstack_db"
+      docker.image = "mysql:5.6"
+      docker.remains_running = true
+      docker.ports = [ "3306:3306" ]
+      docker.expose = [ 3306 ]
+      docker.env = {
+        "MYSQL_ROOT_PASSWORD" => DB_PASSWORD
+      }
+      # docker.cmd = ["mysqld"]
+    end
+  end
+
+  config.vm.define "keystone" do |keystone|
+    keystone.vm.provider "docker" do |docker|
+      docker.name = "openstack_keystone"
+      docker.image = "vinik/keystone"
+      docker.remains_running = true
+      docker.ports = [ "5000:5000" ]
+      docker.expose = [ 5000 ]
+      docker.env = {
+        "DB_PASSWORD" => DB_PASSWORD,
+        "OS_USERNAME" => "admin",
+        "OS_PASSWORD" => "ADMIN_PASS",
+        "OS_PROJECT_NAME" => "admin",
+        "OS_USER_DOMAIN_NAME" => "Default",
+        "OS_PROJECT_DOMAIN_NAME" => "Default",
+        "OS_AUTH_URL" => "http://controller:5000/v3",
+        "OS_IDENTITY_API_VERSION" => "3"
+      }
+      # docker.cmd = ["mysqld"]
+      docker.link "db:db"
+    end
+  end
+
+end

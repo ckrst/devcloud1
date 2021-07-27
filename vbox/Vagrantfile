@@ -1,0 +1,32 @@
+# -- mode: ruby --
+# vi: set ft=ruby :
+
+# ENV['VAGRANT_DEFAULT_PROVIDER'] = 'docker'
+OPENSTACK_RELEASE = "wallaby"
+VAGRANTFILE_API_VERSION = "2"
+
+DB_PASSWORD = "changeme"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+  config.vm.box = "ubuntu/focal64"
+
+  config.vm.define "control" do |control|
+    config.vm.provider "virtualbox" do |vb|
+      vb.gui = false
+      vb.memory = "6144"
+    end
+    config.vm.provision "shell", inline: "sudo snap install microstack --beta --devmode"
+    config.vm.provision "shell", inline: "sudo microstack init --auto --control"
+    config.vm.provision "shell", inline: "sudo microstack add-compute"
+    config.vm.provision "shell", inline: "sudo snap get microstack config.credentials.keystone-password"
+    config.vm.provision "shell", inline: "microstack.openstack catalog list"
+  end
+  config.vm.define "compute1" do |compute1|
+    config.vm.provider "virtualbox" do |vb|
+      vb.gui = false
+      vb.memory = "6144"
+    end
+    config.vm.provision "shell", inline: "sudo snap install microstack --beta --devmode"
+  end
+end
