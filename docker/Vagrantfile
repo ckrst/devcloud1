@@ -44,4 +44,26 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
   end
 
+  config.vm.define "glance" do |glance|
+    glance.vm.provider "docker" do |docker|
+      docker.name = "openstack_glance"
+      docker.image = "vinik/glance"
+      docker.remains_running = true
+      docker.ports = [ "5000:5000" ]
+      docker.expose = [ 5000 ]
+      docker.env = {
+        "DB_PASSWORD" => DB_PASSWORD,
+        "OS_USERNAME" => "admin",
+        "OS_PASSWORD" => "ADMIN_PASS",
+        "OS_PROJECT_NAME" => "admin",
+        "OS_USER_DOMAIN_NAME" => "Default",
+        "OS_PROJECT_DOMAIN_NAME" => "Default",
+        "OS_AUTH_URL" => "http://controller:5000/v3",
+        "OS_IDENTITY_API_VERSION" => "3"
+      }
+      # docker.cmd = ["mysqld"]
+      docker.link "db:db"
+    end
+  end
+
 end
