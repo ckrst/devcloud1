@@ -1,0 +1,25 @@
+# -- mode: ruby --
+# vi: set ft=ruby :
+
+# ENV['VAGRANT_DEFAULT_PROVIDER'] = 'docker'
+OPENSTACK_RELEASE = "wallaby"
+VAGRANTFILE_API_VERSION = "2"
+
+DB_PASSWORD = "changeme"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+  config.vm.box = "ubuntu/focal64"
+
+  config.vm.define "frontend" do |frontend|
+    frontend.vm.network "forwarded_port", guest: 80, host: 8080
+    frontend.vm.provider "virtualbox" do |vb|
+      vb.gui = false
+      vb.memory = "6144"
+    end
+    frontend.vm.provision "shell", inline: "sudo apt update && sudo apt upgrade -y"
+    frontend.vm.provision "shell", inline: "sudo apt install wget"
+    frontend.vm.provision "shell", inline: "wget 'https://github.com/OpenNebula/minione/releases/latest/download/minione'"
+    frontend.vm.provision "shell", inline: "sudo bash minione --frontend"
+  end
+end
